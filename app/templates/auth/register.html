@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
 </head>
 <body>
-    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi, incidunt, quaerat, reprehenderit necessitatibus esse qui sit molestiae neque ullam illum assumenda sed? Ab, error. Voluptate vitae molestias eveniet dolorum fugit.</p>
+    <form method="post">
+        <h2>Register</h2>
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Register</button>
+    </form>
+
 </body>
 </html>
