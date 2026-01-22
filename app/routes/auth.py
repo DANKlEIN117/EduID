@@ -1,14 +1,8 @@
-<<<<<<< HEAD
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required
-from app.extensions import db
-=======
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.forms import LoginForm, RegisterForm
->>>>>>> fb6aebd47f6d1922cb24d1eac222900d9df0b054
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
