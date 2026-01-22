@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_wtf import CSRFProtect
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
+csrf = CSRFProtect()
 
 
 def create_app():
@@ -17,6 +19,7 @@ def create_app():
     # init extensions
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
 
     # import models AFTER app + db are ready
     from app import models

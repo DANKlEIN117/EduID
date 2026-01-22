@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EduID | Register</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <main class="auth-page">
+    <section class="login-panel">
+      <div class="brand">EduID</div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-area">
+            {% for category, msg in messages %}
+              <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form class="login-form" action="{{ url_for('auth.register') }}" method="post" novalidate>
+        {{ form.csrf_token }}
+
+        <label for="username">Username</label>
+        {{ form.username() }}
+
+        <label for="password">Password</label>
+        {{ form.password() }}
+
+        <label for="confirm">Confirm password</label>
+        {{ form.confirm() }}
+
+        <label for="role">Role</label>
+        {{ form.role() }}
+
+        <label for="admin_code" class="small-label">Admin code (required for Admin)</label>
+        {{ form.admin_code() }}
+
+        <button type="submit" class="btn-primary">Create account</button>
+
+        <p class="muted">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
