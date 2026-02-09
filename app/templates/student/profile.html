@@ -30,6 +30,19 @@
             </div>
 
             <div class="mb-3">
+                {{ form.school_name.label }}
+                {{ form.school_name(class="form-control" + (" is-invalid" if form.school_name.errors else "")) }}
+                <small class="form-text text-muted">Name of your school</small>
+                {% if form.school_name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.school_name.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
                 {{ form.email.label }}
                 {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
                 {% if form.email.errors %}
@@ -72,6 +85,62 @@
                 {% if form.class_level.errors %}
                     <div class="invalid-feedback">
                         {% for error in form.class_level.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <hr>
+            <h4 class="mt-4 mb-3">Emergency Information</h4>
+            <small class="form-text text-muted d-block mb-3">This information will appear on your ID card for emergency purposes</small>
+
+            <div class="mb-3">
+                {{ form.blood_type.label }}
+                {{ form.blood_type(class="form-control" + (" is-invalid" if form.blood_type.errors else "")) }}
+                <small class="form-text text-muted">e.g., O+, A-, AB+</small>
+                {% if form.blood_type.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.blood_type.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.allergies.label }}
+                {{ form.allergies(class="form-control" + (" is-invalid" if form.allergies.errors else ""), rows=2) }}
+                <small class="form-text text-muted">List any allergies or medical conditions</small>
+                {% if form.allergies.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.allergies.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.emergency_contact_name.label }}
+                {{ form.emergency_contact_name(class="form-control" + (" is-invalid" if form.emergency_contact_name.errors else "")) }}
+                <small class="form-text text-muted">Name of emergency contact person</small>
+                {% if form.emergency_contact_name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.emergency_contact_name.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.emergency_contact_phone.label }}
+                {{ form.emergency_contact_phone(class="form-control" + (" is-invalid" if form.emergency_contact_phone.errors else "")) }}
+                <small class="form-text text-muted">Contact phone number</small>
+                {% if form.emergency_contact_phone.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.emergency_contact_phone.errors %}
                             <div>{{ error }}</div>
                         {% endfor %}
                     </div>

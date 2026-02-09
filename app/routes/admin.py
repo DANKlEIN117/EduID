@@ -3,7 +3,8 @@ from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.student import Student, SchoolID
 from app.models import User
-from app.forms import AdminReviewForm
+from app.models.invitation import AdminInvitation
+from app.forms import AdminReviewForm, AdminInviteForm
 from app.decorators import admin_required
 from app.utils.pdf_utils import generate_bulk_print_pdf
 from datetime import datetime
@@ -136,15 +137,41 @@ def bulk_print():
 @login_required
 @admin_required
 def generate_print_pdf():
-    # Get selected IDs from request
-    selected_ids = request.json.get('ids', [])
+    print(f"Request method: {request.method}")
+    print(f"Request content-type: {request.content_type}")
     
-    if not selected_ids:
+    # Get selected IDs from request
+    selected_ids = []
+    
+    try:
+        if not request.is_json:
+            print("Request is not JSON")
+            return jsonify({'success': False, 'message': 'Request must be JSON'}), 400
+            
+        data = request.get_json()
+        print(f"Request data: {data}")
+        
+        selected_ids = data.get('ids', [])
+        print(f"Selected IDs from request: {selected_ids}")
+        
+        # Convert string IDs to integers
+        selected_ids = [int(id_val) for id_val in selected_ids]
+        print(f"Converted IDs: {selected_ids}")
+        
+    except Exception as json_error:
+        print(f"Error parsing JSON: {json_error}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Error parsing request: {str(json_error)}'}), 400
+    
+    if not selected_ids or len(selected_ids) == 0:
+        print("No IDs selected")
         return jsonify({'success': False, 'message': 'No IDs selected'}), 400
     
     try:
         # Get SchoolID records
         school_ids = SchoolID.query.filter(SchoolID.id.in_(selected_ids)).all()
+        print(f"Found {len(school_ids)} school IDs")
         
         if not school_ids:
             return jsonify({'success': False, 'message': 'No valid IDs found'}), 400
@@ -156,11 +183,19 @@ def generate_print_pdf():
         
         for sid in school_ids:
             student = Student.query.get(sid.student_id)
+            if not student:
+                continue
+                
             id_records.append({
                 'id': student.id,
                 'full_name': student.full_name,
                 'reg_no': student.reg_no,
-                'class_level': student.class_level or 'N/A'
+                'class_level': student.class_level or 'N/A',
+                'blood_type': student.blood_type,
+                'allergies': student.allergies,
+                'emergency_contact_name': student.emergency_contact_name,
+                'emergency_contact_phone': student.emergency_contact_phone,
+                'school_name': student.school_name or 'School ID'
             })
             
             if sid.qr_code:
@@ -169,8 +204,26 @@ def generate_print_pdf():
             if sid.preview_image:
                 photo_paths[student.id] = os.path.join(current_app.root_path, sid.preview_image)
         
+        if not id_records:
+            return jsonify({'success': False, 'message': 'No valid students found'}), 400
+        
+        # School configuration (use first student's school if available)
+        school_config = {
+            'name': id_records[0].get('school_name', 'School ID'),
+            'motto': 'Excellence in Education',
+            'color': '#1a5490'
+        }
+        
+        print(f"Generating bulk PDF for {len(id_records)} students")
+        
         # Generate bulk PDF
-        pdf_buffer = generate_bulk_print_pdf(id_records, qr_paths, photo_paths)
+        try:
+            pdf_buffer = generate_bulk_print_pdf(id_records, qr_paths, photo_paths, school_config)
+        except Exception as pdf_error:
+            print(f"Bulk PDF generation error: {pdf_error}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'success': False, 'message': f'PDF generation error: {str(pdf_error)}'}), 500
         
         if pdf_buffer:
             # Update status to printed for selected IDs
@@ -184,7 +237,7 @@ def generate_print_pdf():
                 'pdf_ready': True
             })
         else:
-            return jsonify({'success': False, 'message': 'Error generating PDF'}), 500
+            return jsonify({'success': False, 'message': 'PDF buffer is empty'}), 500
             
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -231,4 +284,52 @@ def statistics():
     }
     
     return render_template("admin/statistics.html", stats=stats)
+
+
+@admin_bp.route("/invite-admin", methods=['GET', 'POST'])
+@login_required
+@admin_required
+def invite_admin():
+    form = AdminInviteForm()
+    if form.validate_on_submit():
+        email = form.email.data.strip()
+        
+        # Check if already invited
+        existing = AdminInvitation.query.filter_by(email=email, is_used=False).first()
+        if existing and existing.is_valid():
+            flash('An invitation has already been sent to this email', 'warning')
+            return render_template('admin/invite_admin.html', form=form)
+        
+        token = AdminInvitation.generate_token()
+        invitation = AdminInvitation(
+            token=token,
+            email=email,
+            admin_id=current_user.id
+        )
+        db.session.add(invitation)
+        db.session.commit()
+        
+        # Create invitation link
+        invite_link = url_for('auth.register_admin', token=token, _external=True)
+        
+        flash(f'Invitation sent! Share this link: {invite_link}', 'success')
+        return render_template('admin/invite_admin.html', form=form, invite_link=invite_link)
+    
+    # Show pending invitations
+    pending = AdminInvitation.query.filter_by(is_used=False).filter(AdminInvitation.expires_at > datetime.utcnow()).all()
+    
+    return render_template('admin/invite_admin.html', form=form, pending_invitations=pending)
+
+
+@admin_bp.route("/invitations")
+@login_required
+@admin_required
+def invitations():
+    page = request.args.get('page', 1, type=int)
+    
+    # All invitations
+    invitations = AdminInvitation.query.order_by(AdminInvitation.created_at.desc()).paginate(page=page, per_page=10)
+    
+    return render_template('admin/invitations.html', invitations=invitations)
+
 

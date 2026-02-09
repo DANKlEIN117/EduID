@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>EduID | Register</title>
+  <title>EduID | Admin Registration</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
   <main class="auth-page">
     <section class="login-panel">
-      <div class="brand">EduID</div>
+      <div class="brand">EduID - Admin Registration</div>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -21,14 +21,15 @@
         {% endif %}
       {% endwith %}
 
-      <form class="login-form" action="{{ url_for('auth.register') }}" method="post" novalidate>
+      <form class="login-form" method="post" novalidate>
         {{ form.csrf_token }}
+
+        <p style="margin-bottom: 1.5rem; color: #666;">
+          <strong>Email:</strong> {{ email }}
+        </p>
 
         <label for="username">Username</label>
         {{ form.username() }}
-
-        <label for="reg_no">Registration Number</label>
-        {{ form.reg_no() }}
 
         <label for="password">Password</label>
         {{ form.password() }}
@@ -36,7 +37,7 @@
         <label for="confirm">Confirm password</label>
         {{ form.confirm() }}
 
-        <button type="submit" class="btn-primary">{{ form.submit.label }}</button>
+        <button type="submit" class="btn-primary">Create Admin Account</button>
 
         <p class="muted">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
       </form>

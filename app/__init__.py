@@ -25,6 +25,7 @@ def create_app():
     # import models AFTER db init
     from app.models import User
     from app.models.student import Student, SchoolID
+    from app.models.invitation import AdminInvitation
 
     # Flask-Login user loader
     @login_manager.user_loader
@@ -43,5 +44,9 @@ def create_app():
     app.register_blueprint(student_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(id_bp)
+
+    # Register CLI commands
+    from app.cli import init_cli
+    init_cli(app)
 
     return app

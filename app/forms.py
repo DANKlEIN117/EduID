@@ -15,17 +15,33 @@ class RegisterForm(FlaskForm):
     reg_no = StringField('Registration Number', validators=[Optional()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=128)])
     confirm = PasswordField('Confirm password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
-    role = SelectField('Role', choices=[('student', 'Student'), ('admin', 'Admin')])
-    admin_code = StringField('Admin code')
+    submit = SubmitField('Register as Student')
+
+
+class AdminRegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=100)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=128)])
+    confirm = PasswordField('Confirm password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
+    submit = SubmitField('Create Admin Account')
+
+
+class AdminInviteForm(FlaskForm):
+    email = StringField('Email Address', validators=[DataRequired(), Email()])
+    submit = SubmitField('Send Invitation')
 
 
 class StudentProfileForm(FlaskForm):
     reg_no = StringField('Registration Number', validators=[DataRequired()])
     full_name = StringField('Full Name', validators=[DataRequired(), Length(min=2, max=120)])
+    school_name = StringField('School Name', validators=[DataRequired(), Length(min=2, max=200)])
     email = StringField('Email', validators=[Email(), Optional()])
     phone = StringField('Phone Number', validators=[Length(max=20), Optional()])
     date_of_birth = StringField('Date of Birth (YYYY-MM-DD)', validators=[Optional()])
     class_level = StringField('Class/Level', validators=[Optional()])
+    blood_type = StringField('Blood Type (e.g., O+, A-, AB+)', validators=[Optional(), Length(max=10)])
+    allergies = StringField('Allergies', validators=[Optional(), Length(max=200)])
+    emergency_contact_name = StringField('Emergency Contact Name', validators=[Optional(), Length(max=120)])
+    emergency_contact_phone = StringField('Emergency Contact Phone', validators=[Optional(), Length(max=20)])
     submit = SubmitField('Update Profile')
 
 

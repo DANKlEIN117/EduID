@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Invite Admin - EduID Admin{% endblock %}
+
+{% block content %}
+<h1>Invite New Admin</h1>
+<hr>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Send Invitation</h5>
+            </div>
+            <div class="card-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'danger' else 'warning' if category == 'warning' else 'success' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% if invite_link %}
+                    <div class="alert alert-info">
+                        <strong>Share this link with the new admin:</strong>
+                        <div class="mt-2">
+                            <input type="text" class="form-control" value="{{ invite_link }}" readonly>
+                        </div>
+                        <small>The link will expire in 7 days</small>
+                    </div>
+                {% endif %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.email.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Generate Invitation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Pending Invitations</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_invitations %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Created</th>
+                                    <th>Expires</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inv in pending_invitations %}
+                                    <tr>
+                                        <td>{{ inv.email }}</td>
+                                        <td>{{ inv.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ inv.expires_at.strftime('%Y-%m-%d') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No pending invitations</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

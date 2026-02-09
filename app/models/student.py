@@ -6,11 +6,17 @@ class Student(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
     reg_no = db.Column(db.String(30), unique=True, nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
+    school_name = db.Column(db.String(200))  # School name
     email = db.Column(db.String(120))
     phone = db.Column(db.String(20))
     date_of_birth = db.Column(db.Date)
     class_level = db.Column(db.String(50))
     photo = db.Column(db.String(200))
+    # Emergency Information
+    blood_type = db.Column(db.String(10))  # e.g., O+, A-, AB+
+    allergies = db.Column(db.String(200))
+    emergency_contact_name = db.Column(db.String(120))
+    emergency_contact_phone = db.Column(db.String(20))
     school_ids = db.relationship('SchoolID', backref='student', lazy=True, cascade='all, delete-orphan')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -30,3 +36,4 @@ class SchoolID(db.Model):
     notes = db.Column(db.Text)  # admin notes
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+

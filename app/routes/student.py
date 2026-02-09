@@ -46,9 +46,15 @@ def profile():
     if form.validate_on_submit():
         student.reg_no = form.reg_no.data
         student.full_name = form.full_name.data
+        student.school_name = form.school_name.data
         student.email = form.email.data
         student.phone = form.phone.data
         student.class_level = form.class_level.data
+        student.blood_type = form.blood_type.data
+        student.allergies = form.allergies.data
+        student.emergency_contact_name = form.emergency_contact_name.data
+        student.emergency_contact_phone = form.emergency_contact_phone.data
+        
         if form.date_of_birth.data:
             try:
                 student.date_of_birth = datetime.strptime(form.date_of_birth.data, '%Y-%m-%d').date()
@@ -62,9 +68,14 @@ def profile():
     elif request.method == 'GET':
         form.reg_no.data = student.reg_no
         form.full_name.data = student.full_name
+        form.school_name.data = student.school_name
         form.email.data = student.email
         form.phone.data = student.phone
         form.class_level.data = student.class_level
+        form.blood_type.data = student.blood_type
+        form.allergies.data = student.allergies
+        form.emergency_contact_name.data = student.emergency_contact_name
+        form.emergency_contact_phone.data = student.emergency_contact_phone
         if student.date_of_birth:
             form.date_of_birth.data = student.date_of_birth.strftime('%Y-%m-%d')
     
@@ -177,7 +188,11 @@ def download_id_pdf(id_id):
                 'full_name': student.full_name,
                 'reg_no': student.reg_no,
                 'id_number': school_id.id_number,
-                'class_level': student.class_level or 'N/A'
+                'class_level': student.class_level or 'N/A',
+                'blood_type': student.blood_type,
+                'allergies': student.allergies,
+                'emergency_contact_name': student.emergency_contact_name,
+                'emergency_contact_phone': student.emergency_contact_phone
             }
             
             qr_path = os.path.join(current_app.root_path, school_id.qr_code) if school_id.qr_code else None
@@ -186,13 +201,41 @@ def download_id_pdf(id_id):
             pdf_filename = os.path.join(UPLOAD_FOLDER, 'pdfs', f"ID_{school_id.id_number}.pdf")
             os.makedirs(os.path.dirname(pdf_filename), exist_ok=True)
             
-            pdf_path = generate_id_pdf(student_data, school_id.id_number, qr_path, photo_path, pdf_filename)
+            # Get school config from student's profile
+            school_config = {
+                'name': student.school_name or 'School ID',
+                'motto': 'Excellence in Education',
+                'color': '#1a5490'
+            }
             
-            if pdf_path:
+            try:
+                pdf_path = generate_id_pdf(student_data, school_id.id_number, qr_path, photo_path, pdf_filename, school_config)
+                print(f"PDF generation returned: {pdf_path}")
+                print(f"PDF file exists: {os.path.exists(pdf_path) if pdf_path else 'N/A'}")
+            except Exception as pdf_error:
+                print(f"PDF generation error: {pdf_error}")
+                import traceback
+                traceback.print_exc()
+                flash(f'Error generating PDF: {str(pdf_error)}', 'danger')
+                return redirect(url_for('student.dashboard'))
+            
+            if pdf_path and os.path.exists(pdf_path):
                 school_id.pdf_file = os.path.relpath(pdf_path, current_app.root_path)
                 db.session.commit()
+            else:
+                flash('Failed to generate PDF', 'danger')
+                return redirect(url_for('student.dashboard'))
+        
+        if not school_id.pdf_file:
+            flash('PDF file path is invalid', 'danger')
+            return redirect(url_for('student.dashboard'))
         
         pdf_path = os.path.join(current_app.root_path, school_id.pdf_file)
+        
+        if not os.path.exists(pdf_path):
+            flash('PDF file not found', 'danger')
+            return redirect(url_for('student.dashboard'))
+        
         return send_file(pdf_path, as_attachment=True, download_name=f"ID_{school_id.id_number}.pdf")
         
     except Exception as e:

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}All Invitations - EduID Admin{% endblock %}
+
+{% block content %}
+<h1>Admin Invitations</h1>
+<hr>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Invitation History</h5>
+    </div>
+    <div class="card-body">
+        {% if invitations.items %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Created By</th>
+                            <th>Created</th>
+                            <th>Used By</th>
+                            <th>Used At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invitations.items %}
+                            <tr>
+                                <td>{{ inv.email }}</td>
+                                <td>
+                                    {% if inv.is_used %}
+                                        <span class="badge bg-success">Used</span>
+                                    {% elif inv.is_valid() %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Expired</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if inv.admin_id %}
+                                        {% set creator = inv.admin %}
+                                        {{ creator.username if creator else 'N/A' }}
+                                    {% else %}
+                                        System
+                                    {% endif %}
+                                </td>
+                                <td>{{ inv.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if inv.used_by_id %}
+                                        {% set used_by = inv.used_by %}
+                                        {{ used_by.username if used_by else 'N/A' }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if inv.used_at %}
+                                        {{ inv.used_at.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if invitations.pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-3">
+                    <ul class="pagination">
+                        {% if invitations.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.invitations', page=invitations.prev_num) }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in invitations.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num == invitations.page %}
+                                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.invitations', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if invitations.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.invitations', page=invitations.next_num) }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info">No invitations yet</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin.invite_admin') }}" class="btn btn-primary">Send New Invitation</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}
