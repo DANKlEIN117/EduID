@@ -1,12 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
-</head>
-<body>
-    
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}ID Review - EduID{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <h1>ID Review</h1>
+        <hr>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Student Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Name:</strong> {{ student.full_name }}</p>
+                        <p><strong>Registration Number:</strong> {{ student.reg_no }}</p>
+                        <p><strong>ID Number:</strong> {{ school_id.id_number }}</p>
+                        <p><strong>Class:</strong> {{ student.class_level or 'N/A' }}</p>
+                        {% if student.email %}
+                            <p><strong>Email:</strong> {{ student.email }}</p>
+                        {% endif %}
+                        {% if student.phone %}
+                            <p><strong>Phone:</strong> {{ student.phone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Status Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if school_id.status == 'approved' else 'warning' if school_id.status == 'pending' else 'info' if school_id.status == 'printed' else 'danger' }}">
+                                {{ school_id.status|upper }}
+                            </span>
+                        </p>
+                        <p><strong>Submitted:</strong> {{ school_id.submission_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% if school_id.approval_date %}
+                            <p><strong>Reviewed:</strong> {{ school_id.approval_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% endif %}
+                        {% if school_id.rejection_reason %}
+                            <p><strong>Rejection Reason:</strong> {{ school_id.rejection_reason }}</p>
+                        {% endif %}
+                        {% if school_id.notes %}
+                            <p><strong>Admin Notes:</strong> {{ school_id.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            {% if school_id.preview_image %}
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Uploaded Photo</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="{{ url_for('static', filename=school_id.preview_image) }}" alt="Student Photo" class="img-fluid" style="max-height: 300px;">
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if school_id.qr_code %}
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>QR Code</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="{{ url_for('static', filename=school_id.qr_code) }}" alt="QR Code" class="img-fluid" style="max-height: 300px;">
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if school_id.status in ['approved', 'printed'] %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <a href="{{ url_for('student.download_id_pdf', id_id=school_id.id) }}" class="btn btn-success btn-lg">Download PDF</a>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Student Detail - EduID Admin{% endblock %}
+
+{% block content %}
+<h1>Student Detail</h1>
+<hr>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Student Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ student.full_name }}</p>
+                <p><strong>Registration Number:</strong> {{ student.reg_no }}</p>
+                <p><strong>Class:</strong> {{ student.class_level or 'N/A' }}</p>
+                <p><strong>Email:</strong> {{ student.email or 'N/A' }}</p>
+                <p><strong>Phone:</strong> {{ student.phone or 'N/A' }}</p>
+                {% if student.date_of_birth %}
+                    <p><strong>Date of Birth:</strong> {{ student.date_of_birth.strftime('%Y-%m-%d') }}</p>
+                {% endif %}
+                <p><strong>Member Since:</strong> {{ student.created_at.strftime('%Y-%m-%d') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3>ID Submissions</h3>
+        {% if school_ids %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Reviewed</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for id in school_ids %}
+                            <tr>
+                                <td>{{ id.id_number }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if id.status == 'approved' else 'warning' if id.status == 'pending' else 'info' if id.status == 'printed' else 'danger' }}">
+                                        {{ id.status|upper }}
+                                    </span>
+                                </td>
+                                <td>{{ id.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if id.approval_date %}
+                                        {{ id.approval_date.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.review_submission', id_id=id.id) }}" class="btn btn-sm btn-primary">Review</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">No ID submissions from this student</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin.students_list') }}" class="btn btn-secondary">Back to Students</a>
+</div>
+{% endblock %}

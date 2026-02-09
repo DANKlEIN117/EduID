@@ -15,9 +15,3 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
-class Student(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    reg_no = db.Column(db.String(30), unique=True, nullable=False)
-    full_name = db.Column(db.String(120), nullable=False)
-    photo = db.Column(db.String(200))

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - EduID Admin{% endblock %}
+
+{% block content %}
+<h1>Statistics</h1>
+<hr>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Submissions</h5>
+                <h2 class="text-primary">{{ stats.total }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <h2 class="text-warning">{{ stats.pending }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Approved</h5>
+                <h2 class="text-success">{{ stats.approved }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Rejected</h5>
+                <h2 class="text-danger">{{ stats.rejected }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Printed IDs</h5>
+                <h2 class="text-info">{{ stats.printed }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Approval Rate</h5>
+                <h2 class="text-success">{{ stats.approval_rate }}%</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

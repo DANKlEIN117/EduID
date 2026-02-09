@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - EduID{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Student Profile</h1>
+        <hr>
+        
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.reg_no.label }}
+                {{ form.reg_no(class="form-control", readonly=True) }}
+                <small class="form-text text-muted">Registration number cannot be changed</small>
+            </div>
+
+            <div class="mb-3">
+                {{ form.full_name.label }}
+                {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                {% if form.full_name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.full_name.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.email.label }}
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                {% if form.email.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.email.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.phone.label }}
+                {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                {% if form.phone.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.phone.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.date_of_birth.label }}
+                {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else "")) }}
+                <small class="form-text text-muted">Format: YYYY-MM-DD</small>
+                {% if form.date_of_birth.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.date_of_birth.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.class_level.label }}
+                {{ form.class_level(class="form-control" + (" is-invalid" if form.class_level.errors else "")) }}
+                {% if form.class_level.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.class_level.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

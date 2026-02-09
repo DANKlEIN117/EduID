@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Review Submission - EduID Admin{% endblock %}
+
+{% block content %}
+<h1>Review ID Submission</h1>
+<hr>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Student Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ student.full_name }}</p>
+                <p><strong>Registration Number:</strong> {{ student.reg_no }}</p>
+                <p><strong>ID Number:</strong> {{ school_id.id_number }}</p>
+                <p><strong>Class:</strong> {{ student.class_level or 'N/A' }}</p>
+                {% if student.email %}
+                    <p><strong>Email:</strong> {{ student.email }}</p>
+                {% endif %}
+                {% if student.phone %}
+                    <p><strong>Phone:</strong> {{ student.phone }}</p>
+                {% endif %}
+                <a href="{{ url_for('admin.student_detail', student_id=student.id) }}" class="btn btn-sm btn-info">View Profile</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Submission Details</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Status:</strong> 
+                    <span class="badge bg-{{ 'warning' if school_id.status == 'pending' else 'success' if school_id.status == 'approved' else 'danger' }}">
+                        {{ school_id.status|upper }}
+                    </span>
+                </p>
+                <p><strong>Submitted:</strong> {{ school_id.submission_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% if school_id.approval_date %}
+                    <p><strong>Reviewed:</strong> {{ school_id.approval_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    {% if school_id.preview_image %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Student Photo</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename=school_id.preview_image) }}" alt="Student Photo" class="img-fluid" style="max-height: 400px;">
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if school_id.qr_code %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>QR Code</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename=school_id.qr_code) }}" alt="QR Code" class="img-fluid" style="max-height: 400px;">
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if school_id.status == 'pending' %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Review This Submission</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.status.label(class="form-label") }}
+                    {{ form.status(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.rejection_reason.label(class="form-label") }}
+                    {{ form.rejection_reason(class="form-control", rows="3", placeholder="Enter reason only if rejecting") }}
+                    <small class="form-text text-muted">Only required if status is 'Reject'</small>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.notes.label(class="form-label") }}
+                    {{ form.notes(class="form-control", rows="3", placeholder="Optional admin notes") }}
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                    <a href="{{ url_for('admin.submissions', status='pending') }}" class="btn btn-secondary btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

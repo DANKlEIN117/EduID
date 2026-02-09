@@ -1,14 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduID | Dashboard</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
-</head>
-<body>
-    <h1>Student Dashboard</h1>
-    <p>Welcome to EduID.</p>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Student Dashboard - EduID{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Welcome, {{ current_user.username }}!</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Profile</h5>
+                {% if student %}
+                    <p><strong>Reg No:</strong> {{ student.reg_no }}</p>
+                    <p><strong>Name:</strong> {{ student.full_name }}</p>
+                    <p><strong>Class:</strong> {{ student.class_level or 'N/A' }}</p>
+                    <a href="{{ url_for('student.profile') }}" class="btn btn-sm btn-primary">Edit Profile</a>
+                {% else %}
+                    <p>No profile found. Please create one.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">ID Submissions</h5>
+                <p class="card-text">Total submissions: <strong>{{ school_ids|length }}</strong></p>
+                {% if school_ids %}
+                    <ul class="list-unstyled">
+                        {% for id in school_ids[:3] %}
+                            <li>
+                                <span class="badge bg-{{ 'success' if id.status == 'approved' else 'warning' if id.status == 'pending' else 'danger' }}">{{ id.status|upper }}</span>
+                                {{ id.submission_date.strftime('%Y-%m-%d') }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No submissions yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Submit New ID</h5>
+                <p class="card-text">Upload your information for ID review</p>
+                <a href="{{ url_for('student.submit_id') }}" class="btn btn-primary">Submit ID</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3>ID Submission History</h3>
+        {% if school_ids %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Reviewed</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for id in school_ids %}
+                            <tr>
+                                <td>{{ id.id_number }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if id.status == 'approved' else 'warning' if id.status == 'pending' else 'info' if id.status == 'printed' else 'danger' }}">
+                                        {{ id.status|upper }}
+                                    </span>
+                                </td>
+                                <td>{{ id.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if id.approval_date %}
+                                        {{ id.approval_date.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('student.preview_id', id_id=id.id) }}" class="btn btn-sm btn-info">View</a>
+                                    {% if id.status in ['approved', 'printed'] %}
+                                        <a href="{{ url_for('student.download_id_pdf', id_id=id.id) }}" class="btn btn-sm btn-success">Download PDF</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">No ID submissions yet. <a href="{{ url_for('student.submit_id') }}">Submit your first ID</a></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

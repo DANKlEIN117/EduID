@@ -21,9 +21,9 @@ def login():
         if user:
             valid = False
             try:
-                valid = check_password_hash(user.password, password)
+                valid = check_password_hash(user.password_hash, password)
             except Exception:
-                valid = (user.password == password)
+                valid = (user.password_hash == password)
 
             if valid:
                 login_user(user, remember=remember)
@@ -49,11 +49,13 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         username = form.username.data.strip()
+        reg_no = (form.reg_no.data or '').strip()
         password = form.password.data
         role = form.role.data or 'student'
         admin_code = form.admin_code.data or ''
 
         from app.models import User
+        from app.models.student import Student
         from app import db
 
         exists = User.query.filter_by(username=username).first()
@@ -68,8 +70,19 @@ def register():
                 return render_template('auth/register.html', form=form)
 
         pw_hash = generate_password_hash(password)
-        user = User(username=username, password=pw_hash, role=role)
+        user = User(username=username, password_hash=pw_hash, role=role)
         db.session.add(user)
+        db.session.flush()  # Get the user ID
+        
+        # If student, create Student profile
+        if role == 'student':
+            student = Student(
+                user_id=user.id,
+                reg_no=reg_no if reg_no else username,
+                full_name=username
+            )
+            db.session.add(student)
+        
         db.session.commit()
         flash('Account created. You can now sign in.', 'message')
         return redirect(url_for('auth.login'))

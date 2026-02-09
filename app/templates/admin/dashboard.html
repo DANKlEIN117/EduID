@@ -1,14 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduID | Admin Dashboard</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
-</head>
-<body>
-    <h1>Admin Dashboard</h1>
-    <p>Admin panel is live.</p>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Admin Dashboard - EduID{% endblock %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+<hr>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Submissions</h5>
+                <h2>{{ stats.total }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Pending Review</h5>
+                <h2>{{ stats.pending }}</h2>
+                <a href="{{ url_for('admin.submissions', status='pending') }}" class="btn btn-light btn-sm">Review</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Approved IDs</h5>
+                <h2>{{ stats.approved }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Printed IDs</h5>
+                <h2>{{ stats.printed }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">Rejected IDs</h5>
+                <h2>{{ stats.rejected }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Submissions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Reg No</th>
+                                    <th>ID Number</th>
+                                    <th>Status</th>
+                                    <th>Submitted</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for id in recent %}
+                                    {% set student = id.student %}
+                                    <tr>
+                                        <td>{{ student.full_name }}</td>
+                                        <td>{{ student.reg_no }}</td>
+                                        <td>{{ id.id_number }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'warning' if id.status == 'pending' else 'success' if id.status == 'approved' else 'danger' }}">
+                                                {{ id.status|upper }}
+                                            </span>
+                                        </td>
+                                        <td>{{ id.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.review_submission', id_id=id.id) }}" class="btn btn-sm btn-primary">Review</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>No recent submissions</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Submit ID - EduID{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Submit Student ID for Review</h1>
+        <hr>
+        
+        <div class="alert alert-info">
+            <strong>Instructions:</strong> Upload your photo and any additional documents needed for your student ID. 
+            The admin will review your submission and notify you of approval or rejection.
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Registration Number:</strong> {{ student.reg_no }}</p>
+                    <p><strong>Full Name:</strong> {{ student.full_name }}</p>
+                    <p><strong>Class:</strong> {{ student.class_level or 'Not specified' }}</p>
+                    {% if student.email %}
+                        <p><strong>Email:</strong> {{ student.email }}</p>
+                    {% endif %}
+                    {% if student.phone %}
+                        <p><strong>Phone:</strong> {{ student.phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.photo.label(class="form-label") }}
+                {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else "")) }}
+                <small class="form-text text-muted">Accepted formats: JPG, JPEG, PNG (max 5MB)</small>
+                {% if form.photo.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.photo.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.notes.label(class="form-label") }}
+                {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows="4") }}
+                <small class="form-text text-muted">Optional: Add any additional information about your ID submission</small>
+                {% if form.notes.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.notes.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                {{ form.submit(class="btn btn-success btn-lg") }}
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
