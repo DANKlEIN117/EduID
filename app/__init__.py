@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_login import LoginManager
 from flask_wtf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
+from flask_wtf.csrf import CSRFError
+from flask import request, jsonify
 from app.extensions import db, migrate
 
 login_manager = LoginManager()
@@ -48,5 +51,17 @@ def create_app():
     # Register CLI commands
     from app.cli import init_cli
     init_cli(app)
+
+    # expose csrf token generator to templates
+    @app.context_processor
+    def inject_csrf_token():
+        return dict(csrf_token=generate_csrf)
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        # Return JSON for AJAX/JSON requests to avoid HTML pages breaking JS
+        if request.is_json or request.path.startswith('/admin'):
+            return jsonify({'success': False, 'message': e.description}), 400
+        return e.description, 400
 
     return app

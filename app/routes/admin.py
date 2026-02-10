@@ -7,7 +7,7 @@ from app.models.invitation import AdminInvitation
 from app.forms import AdminReviewForm, AdminInviteForm
 from app.decorators import admin_required
 from app.utils.pdf_utils import generate_bulk_print_pdf
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -191,6 +191,9 @@ def generate_print_pdf():
                 'full_name': student.full_name,
                 'reg_no': student.reg_no,
                 'class_level': student.class_level or 'N/A',
+                'course': getattr(student, 'course', None) or getattr(student, 'program', None) or student.class_level,
+                'year': getattr(student, 'year_of_study', None) or getattr(student, 'year', None) or '',
+                'valid_until': (datetime.utcnow() + timedelta(days=365)).strftime('%b %Y'),
                 'blood_type': student.blood_type,
                 'allergies': student.allergies,
                 'emergency_contact_name': student.emergency_contact_name,
@@ -208,10 +211,14 @@ def generate_print_pdf():
             return jsonify({'success': False, 'message': 'No valid students found'}), 400
         
         # School configuration (use first student's school if available)
+        default_logo = os.path.join(current_app.root_path, 'static', 'img', 'logo.png')
         school_config = {
             'name': id_records[0].get('school_name', 'School ID'),
             'motto': 'Excellence in Education',
-            'color': '#1a5490'
+            'color': '#1a5490',
+            'logo_path': default_logo if os.path.exists(default_logo) else None,
+            'address': current_app.config.get('SCHOOL_ADDRESS'),
+            'website': current_app.config.get('SCHOOL_WEBSITE')
         }
         
         print(f"Generating bulk PDF for {len(id_records)} students")
@@ -224,20 +231,26 @@ def generate_print_pdf():
             import traceback
             traceback.print_exc()
             return jsonify({'success': False, 'message': f'PDF generation error: {str(pdf_error)}'}), 500
-        
-        if pdf_buffer:
-            # Update status to printed for selected IDs
+
+        if not pdf_buffer:
+            return jsonify({'success': False, 'message': 'PDF buffer is empty'}), 500
+
+        # Mark selected IDs as printed
+        try:
             for sid in school_ids:
                 sid.status = 'printed'
             db.session.commit()
-            
-            return jsonify({
-                'success': True,
-                'message': 'Print PDF generated successfully',
-                'pdf_ready': True
-            })
-        else:
-            return jsonify({'success': False, 'message': 'PDF buffer is empty'}), 500
+        except Exception as commit_error:
+            print(f"Error updating printed status: {commit_error}")
+
+        # Return PDF as attachment for download
+        try:
+            pdf_buffer.seek(0)
+            filename = f"bulk_print_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.pdf"
+            return send_file(pdf_buffer, mimetype='application/pdf', as_attachment=True, download_name=filename)
+        except Exception as send_error:
+            print(f"Error sending PDF: {send_error}")
+            return jsonify({'success': False, 'message': f'Error sending PDF: {str(send_error)}'}), 500
             
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500

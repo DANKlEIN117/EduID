@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="mt-3">
-                    <button type="button" class="btn btn-success btn-lg" onclick="generatePrintPDF()">
+                    <button type="button" class="btn btn-success btn-lg" onclick="generatePrintPDF(event)">
                         Generate Print PDF
                     </button>
                     <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
@@ -72,7 +72,7 @@
         });
     }
 
-    function generatePrintPDF() {
+    function generatePrintPDF(event) {
         const checkboxes = document.querySelectorAll('.id-checkbox:checked');
         const ids = Array.from(checkboxes).map(cb => cb.value);
 
@@ -82,25 +82,52 @@
         }
 
         // Show loading state
-        const button = event.target;
-        const originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Generating...';
+        const button = event && event.target ? event.target : document.querySelector('.btn-success');
+        const originalText = button ? button.textContent : '';
+        if (button) { button.disabled = true; button.textContent = 'Generating...'; }
+
+        // CSRF token
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : null;
 
         fetch('{{ url_for("admin.generate_print_pdf") }}', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
             body: JSON.stringify({ ids: ids })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Print PDF generated successfully! IDs marked as printed.');
+        .then(response => {
+            const ct = (response.headers.get('Content-Type') || '').toLowerCase();
+            if (ct.includes('application/pdf')) {
+                return response.blob().then(blob => ({ ok: true, blob }));
+            }
+            if (ct.includes('application/json')) {
+                return response.json().then(json => ({ ok: false, json }));
+            }
+            return response.text().then(text => ({ ok: false, text }));
+        })
+        .then(result => {
+            if (result.ok) {
+                const blob = result.blob;
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'bulk_print.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                alert('Print PDF downloaded. Selected IDs marked as printed.');
                 location.reload();
             } else {
-                alert('Error: ' + data.message);
+                if (result.json && result.json.message) {
+                    alert('Error: ' + result.json.message);
+                } else if (result.text) {
+                    // Likely HTML error or login redirect
+                    alert('Server error (non-JSON): see console.');
+                    console.error('Server response:', result.text);
+                } else {
+                    alert('Unknown server error');
+                }
             }
         })
         .catch(error => {
