@@ -47,6 +47,7 @@ def profile():
         student.reg_no = form.reg_no.data
         student.full_name = form.full_name.data
         student.school_name = form.school_name.data
+        student.course = form.course.data
         student.email = form.email.data
         student.phone = form.phone.data
         student.class_level = form.class_level.data
@@ -61,6 +62,12 @@ def profile():
             except:
                 pass
         
+        if form.valid_until.data:
+            try:
+                student.valid_until = datetime.strptime(form.valid_until.data, '%Y-%m-%d').date()
+            except:
+                pass
+        
         db.session.commit()
         flash('Profile updated successfully', 'success')
         return redirect(url_for('student.profile'))
@@ -69,6 +76,7 @@ def profile():
         form.reg_no.data = student.reg_no
         form.full_name.data = student.full_name
         form.school_name.data = student.school_name
+        form.course.data = student.course
         form.email.data = student.email
         form.phone.data = student.phone
         form.class_level.data = student.class_level
@@ -78,6 +86,8 @@ def profile():
         form.emergency_contact_phone.data = student.emergency_contact_phone
         if student.date_of_birth:
             form.date_of_birth.data = student.date_of_birth.strftime('%Y-%m-%d')
+        if student.valid_until:
+            form.valid_until.data = student.valid_until.strftime('%Y-%m-%d')
     
     return render_template("student/profile.html", form=form, student=student)
 
@@ -184,32 +194,33 @@ def download_id_pdf(id_id):
     try:
         # Generate PDF if not already created
         if not school_id.pdf_file or not os.path.exists(os.path.join(current_app.root_path, school_id.pdf_file)):
+            # Format student data for PDF generation
+            valid_until_str = ''
+            if student.valid_until:
+                valid_until_str = student.valid_until.strftime('%b %Y')
+            
             student_data = {
                 'full_name': student.full_name,
                 'reg_no': student.reg_no,
-                'id_number': school_id.id_number,
                 'class_level': student.class_level or 'N/A',
-                'blood_type': student.blood_type,
-                'allergies': student.allergies,
-                'emergency_contact_name': student.emergency_contact_name,
-                'emergency_contact_phone': student.emergency_contact_phone
+                'course': student.course or 'N/A',
+                'valid_until': valid_until_str,
+                'photo_path': os.path.join(current_app.root_path, school_id.preview_image) if school_id.preview_image else None,
+                'qr_path': os.path.join(current_app.root_path, school_id.qr_code) if school_id.qr_code else None,
+                'blood_type': student.blood_type or 'N/A',
+                'allergies': student.allergies or 'N/A',
+                'emergency_contact_name': student.emergency_contact_name or 'N/A',
+                'emergency_contact_phone': student.emergency_contact_phone or 'N/A',
+                'school_name': student.school_name or 'School ID',
+                'logo_path': os.path.join(current_app.root_path, 'static', 'img', 'logo.png')
             }
-            
-            qr_path = os.path.join(current_app.root_path, school_id.qr_code) if school_id.qr_code else None
-            photo_path = os.path.join(current_app.root_path, school_id.preview_image) if school_id.preview_image else None
             
             pdf_filename = os.path.join(UPLOAD_FOLDER, 'pdfs', f"ID_{school_id.id_number}.pdf")
             os.makedirs(os.path.dirname(pdf_filename), exist_ok=True)
             
-            # Get school config from student's profile
-            school_config = {
-                'name': student.school_name or 'School ID',
-                'motto': 'Excellence in Education',
-                'color': '#1a5490'
-            }
-            
             try:
-                pdf_path = generate_id_pdf(student_data, school_id.id_number, qr_path, photo_path, pdf_filename, school_config)
+                # Call generate_id_pdf with proper format: list of students and output path
+                pdf_path = generate_id_pdf([student_data], pdf_filename)
                 print(f"PDF generation returned: {pdf_path}")
                 print(f"PDF file exists: {os.path.exists(pdf_path) if pdf_path else 'N/A'}")
             except Exception as pdf_error:

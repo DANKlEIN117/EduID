@@ -185,19 +185,27 @@ def generate_print_pdf():
             student = Student.query.get(sid.student_id)
             if not student:
                 continue
+            
+            # Format valid_until date from student profile
+            valid_until_str = ''
+            if student.valid_until:
+                valid_until_str = student.valid_until.strftime('%b %Y')
+            else:
+                # Fallback: use current year + 1
+                valid_until_str = (datetime.utcnow() + timedelta(days=365)).strftime('%b %Y')
                 
             id_records.append({
                 'id': student.id,
                 'full_name': student.full_name,
                 'reg_no': student.reg_no,
                 'class_level': student.class_level or 'N/A',
-                'course': getattr(student, 'course', None) or getattr(student, 'program', None) or student.class_level,
+                'course': student.course or getattr(student, 'course', None) or getattr(student, 'program', None) or student.class_level,
                 'year': getattr(student, 'year_of_study', None) or getattr(student, 'year', None) or '',
-                'valid_until': (datetime.utcnow() + timedelta(days=365)).strftime('%b %Y'),
-                'blood_type': student.blood_type,
-                'allergies': student.allergies,
-                'emergency_contact_name': student.emergency_contact_name,
-                'emergency_contact_phone': student.emergency_contact_phone,
+                'valid_until': valid_until_str,
+                'blood_type': student.blood_type or 'N/A',
+                'allergies': student.allergies or 'N/A',
+                'emergency_contact_name': student.emergency_contact_name or 'N/A',
+                'emergency_contact_phone': student.emergency_contact_phone or 'N/A',
                 'school_name': student.school_name or 'School ID'
             })
             

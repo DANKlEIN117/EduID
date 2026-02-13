@@ -43,6 +43,19 @@
             </div>
 
             <div class="mb-3">
+                {{ form.course.label }}
+                {{ form.course(class="form-control" + (" is-invalid" if form.course.errors else "")) }}
+                <small class="form-text text-muted">Your course or program of study</small>
+                {% if form.course.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.course.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
                 {{ form.email.label }}
                 {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
                 {% if form.email.errors %}
@@ -68,8 +81,7 @@
 
             <div class="mb-3">
                 {{ form.date_of_birth.label }}
-                {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else "")) }}
-                <small class="form-text text-muted">Format: YYYY-MM-DD</small>
+                {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else ""), type="date") }}
                 {% if form.date_of_birth.errors %}
                     <div class="invalid-feedback">
                         {% for error in form.date_of_birth.errors %}
@@ -85,6 +97,19 @@
                 {% if form.class_level.errors %}
                     <div class="invalid-feedback">
                         {% for error in form.class_level.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.valid_until.label }}
+                {{ form.valid_until(class="form-control" + (" is-invalid" if form.valid_until.errors else ""), type="date") }}
+                <small class="form-text text-muted">When your ID card expires</small>
+                {% if form.valid_until.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.valid_until.errors %}
                             <div>{{ error }}</div>
                         {% endfor %}
                     </div>

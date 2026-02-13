@@ -7,10 +7,12 @@ class Student(db.Model):
     reg_no = db.Column(db.String(30), unique=True, nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
     school_name = db.Column(db.String(200))  # School name
+    course = db.Column(db.String(200))  # Course/Program name
     email = db.Column(db.String(120))
     phone = db.Column(db.String(20))
     date_of_birth = db.Column(db.Date)
     class_level = db.Column(db.String(50))
+    valid_until = db.Column(db.Date)  # ID valid until date
     photo = db.Column(db.String(200))
     # Emergency Information
     blood_type = db.Column(db.String(10))  # e.g., O+, A-, AB+
